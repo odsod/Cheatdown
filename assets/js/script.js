@@ -32,6 +32,7 @@
       console.log('done!');
     }, 100);
     setTimeout(function () { console.log('hej!'); }, 1000);
+    prettyPrint();
     $(window).resize();
   });
 }(jQuery));

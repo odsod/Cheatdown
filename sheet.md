@@ -79,9 +79,7 @@ Curry-Howard Correspondence
     (P, Q)          P and Q
     Either P Q      P or Q
 
-Shallow Shape
--------------
-
+# Shape
     newtype Shape = Shape { runShape :: Point -> Bool }
     empty :: Shape
     empty = Shape $ \_ -> False
@@ -97,10 +95,7 @@ Shallow Shape
     difference s1 s2 = Shape $ \p -> p `inside` s1 && not (p `inside` s2)
     inside :: Point -> Shape -> Bool
     inside p s = runShape s p
-
-Deep Shape
-----------
-
+    -- Deep
     inside :: Point -> Shape -> Bool
     inside p Empty = False
     inside p Disc = norm <= 1
@@ -114,9 +109,7 @@ Deep Shape
     inside p (Intersect s1 s2) = inside p s1 && inside p s2
     inside p (Difference s1 s2) = inside p s1 && not $ inside p s2
 
-Functors
---------
-
+## Functors
     instance Functor (Either e) where
       fmap f (Right x) = Right (f x)
       fmap _ (Left x) = Left x
@@ -129,9 +122,7 @@ Functors
       Right x >>= f = f x
       Left err >>= f = Left err
 
-ListT
------
-
+## ListT
     newtype ListT m a = ListT { runListT :: m [a] }
     instance (Monad m) => Monad (ListT m) where
       return = returnLT
@@ -147,3 +138,23 @@ ListT
       where mLb = do as <- runListT ltm -- as :: m [a]
                      bss <- mapM (runListT . f) as
                      return (concat bss)
+
+## Signal
+    newtype Signal a = Sig {unSig :: Time -> a}
+    constS x = Sig (const x)
+    timeS = Sig id
+    fs $$ xs = Sig (\t -> unSig fs t  (unSig xs t))
+    mapS f xs = constS f $$ xs
+    mapT f xs = Sig (unSig xs . f)
+    sample = unSig
+    sinS :: Double -> Signal Double
+    sinS freq = mapT (freq*) $ mapS sin timeS
+    instance Functor Signal where fmap = mapS
+    instance Applicative Signal where pure  = constS; (<*>) = ($$)
+    averageS :: Fractional a => 
+                Signal a -> Signal a -> Signal a
+    averageS xs ys = mapS average xs $$ ys
+    averageA :: (Fractional a, Applicative f) => 
+                 f a -> f a -> f a
+    averageA xs ys = average <$> xs <*> ys
+    averageA' = liftA2 average
