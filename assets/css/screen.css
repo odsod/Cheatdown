@@ -1,3 +1,7 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
 /* line 17, ../../../../.rbenv/versions/1.9.3-p374/lib/ruby/gems/1.9.1/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -61,37 +65,4 @@ a img {
 /* line 116, ../../../../.rbenv/versions/1.9.3-p374/lib/ruby/gems/1.9.1/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
   display: block;
-}
-
-/* line 4, ../sass/styles.sass */
-html, body {
-  margin: 0;
-  padding: 0;
-}
-
-/* line 9, ../sass/styles.sass */
-h2 {
-  font-size: inherit;
-  background: black;
-  color: white;
-  font-family: Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
-  font-size: 12px;
-  padding: 1px;
-}
-
-/* line 17, ../sass/styles.sass */
-#container {
-  position: relative;
-  width: 3508px;
-  height: 2480px;
-  display: block;
-}
-
-/* line 23, ../sass/styles.sass */
-.item {
-  margin: 0;
-  padding: 0;
-  font-family: monospace;
-  display: inline-block;
-  background: #eeeeee;
 }
