@@ -1,0 +1,4 @@
+#!/bin/sh
+
+kramdown --parse-block-html --template template.html.erb $1 | sed -e 's/<code>//g' | sed -e 's/<\/code>//g' | sed -e 's/<pre/<div class="item"><pre/g' | sed -e 's/<\/pre>/<\/pre><\/div>/g' > out.html
+wkhtmltopdf-amd64 --use-xserver -B 0mm -L 0mm -R 0mm -T 0mm --debug-javascript --enable-javascript --javascript-delay 2000 --page-width 3508px --page-height 2480px out.html out.pdf

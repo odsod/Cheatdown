@@ -1,0 +1,39 @@
+out.*
+### /home/poscar/.gitignore-boilerplates/Global/vim.gitignore
+
+.*.sw[a-z]
+*.un~
+Session.vim
+.netrwhist
+
+### /home/poscar/.gitignore-boilerplates/Global/SASS.gitignore
+
+### SASS Ignores - "Sassy CSS" http://sass-lang.com/
+*.sass-cache
+
+
+### /home/poscar/.gitignore-boilerplates/Compass.gitignore
+
+.sass-cache
+### /home/poscar/.gitignore-boilerplates/Ruby.gitignore
+
+*.gem
+*.rbc
+.bundle
+.config
+coverage
+InstalledFiles
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+tmp
+
+# YARD artifacts
+.yardoc
+_yardoc
+doc/
+
+
