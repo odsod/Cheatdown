@@ -72,14 +72,12 @@ html, body {
 /* line 9, ../sass/styles.sass */
 h2 {
   font-size: inherit;
-  background: black;
-  color: white;
   font-family: Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
   font-size: 12px;
   padding: 1px;
 }
 
-/* line 17, ../sass/styles.sass */
+/* line 15, ../sass/styles.sass */
 #container {
   position: relative;
   width: 3508px;
@@ -87,11 +85,26 @@ h2 {
   display: block;
 }
 
-/* line 23, ../sass/styles.sass */
+/* line 21, ../sass/styles.sass */
 .item {
   margin: 0;
   padding: 0;
   font-family: monospace;
   display: inline-block;
   background: #eeeeee;
+}
+
+/* line 28, ../sass/styles.sass */
+.edsl {
+  background: #7676ff;
+}
+
+/* line 31, ../sass/styles.sass */
+.spec {
+  background: #76ff76;
+}
+
+/* line 35, ../sass/styles.sass */
+.types {
+  background: #ffff76;
 }

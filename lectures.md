@@ -1,4 +1,5 @@
 ## Signal: Examples
+{: .edsl }
     -- | sinusoidal of given frequency
     sinS :: Double -> Signal Double
     sinS freq = mapT (freq*) $ mapS sin timeS
@@ -36,6 +37,7 @@
     instance Applicative Signal where pure  = constS; (<*>) = ($$)
 
 ## Matrix
+{: .edsl }
     type Angle  = Double
     data Vec    = V { vecX, vecY :: Double }
     type Point  = Vec
@@ -59,6 +61,7 @@
     ptY = vecY
 
 ## Signal: Shallow
+{: .edsl }
     type Time = Double
     newtype Signal a = Sig {unSig :: Time -> a}
     constS :: a -> Signal a
@@ -79,6 +82,7 @@
     sample = unSig
 
 ## Signal: Deep
+{: .edsl }
     type Time = Double
     data Signal a where
       ConstS :: a -> Signal a
@@ -91,6 +95,7 @@
     sample (MapT f s)  = sample s . f
 
 ## Shape: Derived
+{: .edsl }
     -- | Derived combinators
     scale :: Vec -> Shape -> Shape
     scale v = transform (matrix  (vecX v)  0 
@@ -104,6 +109,7 @@
     difference sh1 sh2 = sh1 `intersect` invert sh2
 
 ## Shape: Shallow
+{: .edsl }
     newtype Shape = Shape (Point -> Bool)
     empty :: Shape
     empty = Shape $ \_ -> False
@@ -129,6 +135,7 @@
     p `inside` Shape sh = sh p
 
 ## Shape: Deep
+{: .edsl }
     data Shape where
       Empty   :: Shape
       Disc    :: Shape
@@ -157,6 +164,7 @@
             y = ptY p
 
 ## Shape: Render
+{: .edsl }
     -- | A window specifies what part of the world to render and at which
     --   resolution.
     data Window = Window
@@ -183,6 +191,7 @@
                         | otherwise     = "  "
 
 ## Shape: Animate
+{: .edsl }
     -- | Combining 'Signal' and 'Shape' to obtain moving objects.
     fps = 10   -- we generate 10 fps
     -- | Animate a shape valued signal.
@@ -196,6 +205,7 @@
           usleep 70000  -- sleeping removes flickering
 
 ## Shape: Animation Examples
+{: .edsl }
     -- | A rotating square
     rotatingSquare :: Signal Shape
     rotatingSquare = constS rotate $$ timeS $$ constS square
@@ -225,6 +235,7 @@
     runExample = animate defaultWindow 0 endTime example where endTime = 15
 
 ## Program: Shallow
+{: .edsl }
     {-| A simple embedded language for input/output. Shallow embedding. -}
     type Input  = String
     type Output = String
@@ -250,6 +261,7 @@
     run = unP
 
 ## Program: Deep 1
+{: .edsl }
     type Input   =  String
     type Output  =  String
     data Program a where
@@ -269,6 +281,7 @@
              (y,  i2,  o2)   =  run (f x) i1
 
 ## Program: Deep 2
+{: .edsl }
     import Control.Monad((>=>))
     -- > (>=>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
     -- > f >=> g   =   \c ->  f c >>= g
@@ -310,6 +323,7 @@
     run (Return x)     i        =  (x,  i,  [])
 
 ## Program: Example
+{: .edsl }
     putS :: String -> Program ()
     putS = mapM_ putC
     putSLn :: String -> Program ()
@@ -348,6 +362,7 @@
         getString = whileM (hReady stdin) getChar
 
 ## WhileM
+{: .types }
     whileM :: Monad m => m Bool -> m a -> m [a]
     whileM cond body = do
       ok <- cond
@@ -359,6 +374,7 @@
           return []
 
 ## Program: Game engine
+{: .edsl }
     -- | A game with state s is a program which given a game state computes the
     --   next state, doing some input/output in the process.
     -- 'Nothing' represents the end of the game.
@@ -384,6 +400,7 @@
       putStr $ ansiGoto 1 30
 
 ## Program: Coord
+{: .edsl }
     type Coord = (Int, Int)
     data Dir = North | East | South | West
       deriving (Eq, Show, Enum)
@@ -397,6 +414,7 @@
     -- could also check some maximum x and y
 
 ## Program: Snake
+{: .edsl }
     -- | A snake is a list of body coord.s and a dir. of travel.
     data Snake = Snake { pos :: [Coord] , dir :: Dir }
     -- | The starting position of the snake.
@@ -444,6 +462,7 @@
                                           , dir = d }
 
 ## Parser: Utils
+{: .edsl }
     -- | Parse a symbol satisfying a given predicate.
     sat :: (s -> Bool) -> P s s
     sat p = symbol >>= \x if p x then return x else pfail
@@ -466,6 +485,7 @@
             chain (e `o` e')
 
 ## Parsers: Naive Deep
+{: .edsl }
     data Parser1 s a where
       Symbol  ::  Parser1 s s
       Fail    ::  Parser1 s a
@@ -483,6 +503,7 @@
     run (p :>>= f)  = run p  `bindS`  (run . f)
 
 ## Parser: Semantics
+{: .spec }
     {- Starting point:
     symbolS :: [s] -> [(s, [s])] -- Semantics s s
     symbolS []      = []        -- no parse
@@ -526,6 +547,7 @@
                                           , (y, s'') <- a2pb x s'] -}
 
 ## Parser: Optimization argument
+{: .spec }
     {- Using this reference semantics we can prove (exercise) a number
     of useful laws about parsers. We will use these laws later to
     derive an efficient implementation of the library.
@@ -565,6 +587,7 @@
       Exercise: prove or test the laws -}
 
 ## Parser: Problems
+{: .spec }
     {- The reference semantics is useful for reasoning, but
        inefficient.  There are three sources of inefficiency that we
        can identify:
@@ -581,6 +604,7 @@
     -}
 
 ## Parser: SymbolBind
+{: .spec }
     -- Can we linearize sequencing (>>=)? (Would help with 1.)
     data Parser2 s a where
         SymbolBind2  ::  (s -> Parser2 s a) -> Parser2 s a
@@ -633,6 +657,7 @@
                                  -- monad law, L3
 
 ## Parser: ReturnChoice
+{: .spec }
     -- Can we linearize choice as well (+++)?
     data Parser3 s a where
         SymbolBind3    ::  (s -> Parser3 s a) -> Parser3 s a
@@ -671,6 +696,7 @@
     -- (x , s) âˆˆ run p ss   <=>  (x , s) âˆˆ parse p ss
 
 ## Parser: Tests
+{: .spec }
     data Expr = Lit Int | Plus Expr Expr
     -- | A parser for expressions.
     exprP :: P Char Expr
@@ -722,6 +748,7 @@
               arb2 = arb (n `div` 2)
 
 ## Interpreter: Types
+{: .edsl }
     data Expr = Lit Integer | Expr :+ Expr | Var Name
               | Let Name Expr Expr | NewRef Expr
               | Deref Expr | Expr := Expr | Catch Expr Expr
@@ -744,6 +771,7 @@
       noMsg  = CME.strMsg ""
 
 ## Interpreter: Monad stacking order
+{: .edsl }
     {-| We add an error monad to our evaluation monad. It matters whether
         we stick the error monad on the outside or the inside of the state
         monad. In this case we stick it on the inside.
@@ -763,6 +791,7 @@
         just passed as a return value in the underlying monad.  -}
 
 ## Interpreter: Transformer stacks
+{: .edsl }
     newtype Eval1 a = Eval1{ unEval1:: CMS.StateT Store
       (CMR.ReaderT Env (CME.ErrorT Err CMI.Identity)) a }
       deriving (Monad, CMS.MonadState  Store, CMR.MonadReader Env,
@@ -788,6 +817,7 @@
       -- CMR.runReaderT :: CMR.ReaderT env m a -> (env -> m a)
 
 ## Interpreter: Environment
+{: .edsl }
     -- | Here we just remove the type annotation
     -- lookupVar :: Name -> Eval Value
     lookupVar x = do
@@ -818,6 +848,7 @@
       return v
 
 ## Interperter: Eval
+{: .edsl }
     -- | The case for 'Catch' simply uses the 'catchError' function from
     --   the error monad.
     -- eval :: Expr -> Eval Value
@@ -836,6 +867,7 @@
     eval (Catch e1 e2) = eval e1 `CME.catchError` \_ -> eval e2
 
 ## Interpreter: Examples
+{: .edsl }
     testExpr1 = parse "!p+1738"
     testExpr2 = parse "(try !p catch 0)+1738"
     test1 = runEval1 $ eval testExpr1
@@ -861,6 +893,7 @@
     run' s = ( runEval1 $ evalP s, runEval2 $ evalP s)
 
 ## Interpreter: Parser
+{: .edsl }
     data Language e =
       Lang { lLit :: Integer -> e , lPlus :: e -> e -> e
            , lLet :: String -> e -> e -> e, lVar :: String -> e
@@ -882,22 +915,14 @@
     parseExpr :: Language e -> String -> Either ParseError e
     parseExpr lang = parse exprP ""
       where
-        exprP = do
-          e <- expr0
-          eof
-          return e
+        exprP = do e <- expr0; eof; return e
         expr0 = choice
-          [ do reserved tok "let"
-               x <- identifier tok
-               reservedOp tok "="
-               e1 <- expr2
-               reservedOp tok ";"
-               e2 <- expr0
+          [ do reserved tok "let"; x <- identifier tok
+               reservedOp tok "="; e1 <- expr2
+               reservedOp tok ";"; e2 <- expr0
                return $ lLet lang x e1 e2
-          , do reserved tok "try"
-               e1 <- expr0
-               reserved tok "catch"
-               e2 <- expr0
+          , do reserved tok "try"; e1 <- expr0
+               reserved tok "catch"; e2 <- expr0
                return $ lCatch lang e1 e2
           , expr1 ]
         expr1 = chainr1 expr2 (reservedOp tok ";" >> return (lLet lang "_"))
@@ -905,19 +930,15 @@
         expr3 = chainl1 expr4 plusP
         expr4 = choice
           [ atomP
-          , do reservedOp tok "!"
-               e <- expr4
-               return (lDeref lang e)
-          , do reserved tok "new"
-               e <- expr4
-               return (lNewref lang e) ]
+          , do reservedOp tok "!"; e <- expr4; return (lDeref lang e)
+          , do reserved tok "new"; e <- expr4; return (lNewref lang e) ]
         atomP = choice
-          [ lLit lang <$> integer tok
-          , lVar lang <$> identifier tok
+          [ lLit lang <$> integer tok, lVar lang <$> identifier tok
           , parens tok expr0 ]
         plusP = reservedOp tok "+" >> return (lPlus lang)
 
 ## Testing: Insertion sort
+{: .spec }
     q :: Q.Testable prop => prop -> IO ()
     q = Q.quickCheck
     -- The familiar insert sort function
@@ -973,6 +994,7 @@
       | otherwise = y : insert' x xs
 
 ## GADTs: Expressions
+{: .types }
     -- | A simple expression language with integers and booleans.
     -- Contains both well- and ill-typed expressions.
     data Expr where
@@ -1043,6 +1065,7 @@
             ]
 
 ## GADTs: Type checking
+{: .types }
     {-# LANGUAGE GADTs, ExistentialQuantification #-}
     infixl 6 :+; infix  4 :==; infix  0 :::
     -- | The type of well-typed expressions. There is no way to
@@ -1076,15 +1099,9 @@
       If e1 e2 e3 -> E.If (forget e1) (forget e2) (forget e3)
     instance Show (Expr t) where
       showsPrec p e = showsPrec p (forget e)
-    -- How to go the other way, turning an untyped expression into a
-    -- typed expression?
-    -- Answer: we have to do type checking! Moreover, our type
-    -- checker will have to convince the Haskell type checker to
-    -- allow us to construct an element of Expr t from an untyped
-    -- expression passing our type checker. In other words we are
-    -- not writing a type checker for our own benefit, but to
-    -- explain to GHC's type checker why a particular untyped term
-    -- is really well-typed.
+    -- In other words we are not writing a type checker for our own 
+    -- benefit, but to explain to GHC's type checker why a particular 
+    -- untyped term is really well-typed.
     -- | The types that an expression can have. Indexed by the
     -- corresponding Haskell type.
     data Type t where
@@ -1152,6 +1169,7 @@
     test1  = fromJust (infer test1R)
 
 ## GADTs: Parser
+{: .types }
     type ParseResult s a = [(a, [s])]
     data P s a where
       Fail   :: P s a
