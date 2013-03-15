@@ -75,9 +75,10 @@ h2 {
   font-family: Menlo, "Bitstream Vera Sans Mono", "DejaVu Sans Mono", Monaco, Consolas, monospace;
   font-size: 12px;
   padding: 1px;
+  padding-left: 5px;
 }
 
-/* line 15, ../sass/styles.sass */
+/* line 16, ../sass/styles.sass */
 #container {
   position: relative;
   width: 3508px;
@@ -85,26 +86,25 @@ h2 {
   display: block;
 }
 
-/* line 21, ../sass/styles.sass */
+/* line 22, ../sass/styles.sass */
 .item {
   margin: 0;
   padding: 0;
   font-family: monospace;
-  display: inline-block;
   background: #eeeeee;
 }
 
 /* line 28, ../sass/styles.sass */
 .edsl {
-  background: #7676ff;
+  background: #777777;
 }
 
 /* line 31, ../sass/styles.sass */
 .spec {
-  background: #76ff76;
+  background: #aaaaaa;
 }
 
 /* line 35, ../sass/styles.sass */
 .types {
-  background: #ffff76;
+  background: #dddddd;
 }

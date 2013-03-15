@@ -1219,3 +1219,277 @@
           o  <- op
           e' <- term
           chain (e `o` e')
+
+## Type Families: Add
+{: .types }
+    {-# LANGUAGE MultiParamTypeClasses #-}
+    {-# LANGUAGE TypeFamilies #-}
+    {-# LANGUAGE FlexibleInstances#-}
+    {-# LANGUAGE FlexibleContexts #-}
+    {- Addition in the Num type class has type 
+      (Num a) => a -> a -> a
+    This allows any numeric type to be used for addition _as long as
+    both arguments have the same type_. In math it is common to
+    allow addition of, for example, integers and real
+    numbers. Defining a more flexible addition is a nice little
+    excerices in associated types (type families).  -}
+    class Add a b where           -- uses MultiParamTypeClasses
+          type AddTy a b              -- uses TypeFamilies
+          add :: a -> b -> AddTy a b
+    instance Add Integer Double where
+          type AddTy Integer Double = Double
+          add x y = fromIntegral x + y
+    instance Add Double Integer where
+      type AddTy Double Integer = Double
+      add x y = x + fromIntegral y
+    instance (Num a) => Add a a where -- uses FlexibleInstances
+      type AddTy a a = a
+      add x y = x + y
+    instance (Add Integer a) => 
+             Add Integer [a] where    -- uses FlexibleContexts
+      type AddTy Integer [a] = [AddTy Integer a]
+      add x ys = map (add x) ys
+    -- or equivalently 
+    -- > add x = map (add x)
+    -- or even
+    -- > add = map . add
+    test :: Double
+    test = add (3::Integer) (4::Double)
+    aList :: [Integer]
+    aList =  [0,6,2,7]
+    test2 :: [Integer]
+    test2 = add (1::Integer) aList
+    test3 :: [Double]
+    test3 = add (38::Integer) [1700::Double]
+    -- What is the type of this function?
+    test4 x y z = add x (add y z)
+
+## Type Families: Array
+{: .types }
+    {-# LANGUAGE TypeFamilies, GeneralizedNewtypeDeriving #-}
+    -- Some preliminaries (for stronger type checking)
+    newtype Index = Index {unIndex :: Int} 
+      deriving (Num, Eq, ArrayElem, Ord, Enum)
+    newtype Size  = Size  {unSize  :: Int} 
+      deriving (Num, Eq, ArrayElem)
+    toIndex  :: Size -> Index
+    toIndex (Size n) = Index n
+    maxIndex :: Size -> Index
+    maxIndex n = toIndex n - 1
+    toSize :: Index -> Size
+    toSize (Index i) = Size i
+    {- A type family is like a function on the type level where you
+    can pattern match on the type arguments. An important difference
+    is that it's /open/ which means that you can add more equations
+    to the function at any time.
+    In this example we will implement a type family of "efficient"
+    array implementations.
+    Type families are often used as "associated types" - a type
+    member in a class, much like the class methods are function
+    members of the class. -}
+    -- The type signature for our family / associated datatype
+    data family Array a
+    -- The "family members" will be arrays of ints, pairs, and nested
+    -- arrays.
+    -- | A class of operations on the array family. We'll make one
+    --   instance per clause in the definition of the family.
+    class ArrayElem a where
+      (!)      :: Array a -> Index -> a
+      -- | @slice a (i,n)@ is the slice of @a@ starting at 
+      --   index @i@ with @n@ elements.
+      slice    :: Array a -> (Index, Size) -> Array a
+      size     :: Array a -> Size
+      fromList :: [a] -> Array a
+    -- | Converting an array to a list.
+    toList :: ArrayElem a => Array a -> [a]
+    toList a = [ a ! i | i <- [0..maxIndex (size a)] ]
+    -- * Int arrays. 
+    -- | We cheat with the implementation of Int arrays to make
+    -- implementations of the functions easy.
+    type SuperEfficientByteArray = [Int] -- cheating
+    newtype instance Array Int   = ArrInt SuperEfficientByteArray 
+    -- | Here is a style of instance declaration which just binds
+    -- names and delegates all the work to helper functions. This
+    -- style makes the types of the instatiated member functions
+    -- more visible which can help in documenting and developing the
+    -- code. (Haskell does not allow type signatures in instance
+    -- declarations.)
+    instance ArrayElem Int where
+      (!)      = indexInt
+      slice    = sliceInt
+      size     = sizeInt
+      fromList = fromListInt
+    indexInt :: Array Int -> Index -> Int
+    indexInt (ArrInt a) (Index i) = a !! i
+    sliceInt :: Array Int -> (Index, Size) -> Array Int
+    sliceInt (ArrInt a) (Index i, Size n) =
+        ArrInt (take n (drop i a))
+    sizeInt  :: Array Int -> Size
+    sizeInt (ArrInt a) = Size (length a)
+    fromListInt :: [Int] -> Array Int
+    fromListInt = ArrInt
+    -- Arrays of Sizes or Indices are just the same as arrays of ints
+    newtype instance Array Size  = ArrSize  (Array Int)
+    newtype instance Array Index = ArrIndex (Array Int)
+    -- instance declarations are derived at the definition of Size and
+    -- Index
+    -- | Arrays of pairs are pairs of arrays. Mostly just lifting
+    -- the operations to work on pairs.
+    newtype instance Array (a, b) = ArrPair (Array a, Array b)
+    {- This is a working and short definition, which may be
+    -- preferrable as the end result, but which may be difficult to
+    -- read and understand if you are not used to Haskell.
+    instance (ArrayElem a, ArrayElem b) => ArrayElem (a, b) where
+      ArrPair (as, bs) ! i = (as ! i, bs ! i)
+    slice (ArrPair (as, bs)) (i, n) =
+        ArrPair (slice as (i, n), slice bs (i, n))
+    size (ArrPair (as, _)) = size as
+    fromList xs = ArrPair (fromList as, fromList bs)
+        where (as, bs) = unzip xs -}
+    -- | This is the expanded version showing all the types
+    instance (ArrayElem a, ArrayElem b) => ArrayElem (a, b) where
+      (!)      = indexPair
+      slice    = slicePair
+      size     = sizePair
+      fromList = fromListPair
+    indexPair :: (ArrayElem a, ArrayElem b) => 
+      Array (a, b) -> Index -> (a, b)
+    indexPair (ArrPair (as, bs)) i = (as ! i, bs ! i)
+    slicePair :: (ArrayElem a, ArrayElem b) =>
+      Array (a, b) -> (Index, Size) -> Array (a, b)
+    slicePair (ArrPair (as, bs)) (i, n) =
+      ArrPair (slice as (i, n), slice bs (i, n))
+    sizePair :: ArrayElem a => Array (a, b) -> Size
+    sizePair (ArrPair (as, _)) = size as
+    fromListPair :: (ArrayElem a, ArrayElem b) => 
+      [(a, b)] -> Array (a, b)
+    fromListPair xs = ArrPair (fromList as, fromList bs)
+        where (as, bs) = unzip xs
+    -- | Nested arrays. Here we have to work a little bit.  A nested
+    -- array is implemented as a flat array together with an array
+    -- of offsets (indices) and sizes of the subarrays.
+    data instance Array (Array a) = ArrNested (Array a) 
+                                              (Array (Index, Size))
+    -- Exercise: what invariant must hold for this to work?
+    -- Implement a property checking it.
+    instance ArrayElem a => ArrayElem (Array a) where
+      (!)      = indexNested
+      slice    = sliceNested
+      size     = sizeNested
+      fromList = fromListNested
+    -- Indexing is just slicing the flat array.
+    indexNested :: (ArrayElem a) => 
+      Array (Array a) -> Index -> Array a
+    indexNested (ArrNested as segs) i = slice as (segs ! i)
+    -- | Slicing is slicing the flat array and the segment array,
+    -- but we have to do some work to figure out how to slice the
+    -- flat array.
+    sliceNested :: (ArrayElem a) =>
+      Array (Array a) -> (Index, Size) -> Array (Array a)
+    sliceNested (ArrNested as segs) (i, n) =
+      ArrNested (slice as   (j, m)) 
+                (fixInvariant $ slice segs (i, n))
+      where
+        fixInvariant = fromList . map (mapFst ((-j)+)) . toList
+        (j, _) = segs ! i
+        m      = sum [ snd (segs ! k) -- second components store sizes
+                     | k <- [i..n'-1] ]
+        n' = min (i+toIndex n) (toIndex $ size segs) 
+             -- don't look too far
+    -- Exercise: Refactor to avoid summing - something like 
+    --    m' = toSize (fst (segs ! (i + toIndex n))  - j)
+
+    mapFst :: (a->a') -> (a, b) -> (a', b)
+    mapFst       f       (a, b) = (f a, b)
+    sizeNested :: Array (Array a) -> Size
+    sizeNested (ArrNested _ segs) = size segs
+    -- Creating the flat array isn't very nicely done. We shouldn't
+    -- have to convert our arrays back to lists to do it.  Solution
+    -- (exercise): add a concatenation operation on arrays.
+    fromListNested :: (ArrayElem a) => [Array a] -> Array (Array a)
+    fromListNested xss = 
+        ArrNested (fromList $ concatMap toList xss) -- Bad!
+                  (fromList $ tail $ scanl seg (0,0) xss)
+      where seg (i, n) a = (i + toIndex n, size a)
+    instance Show Size  where 
+      showsPrec p (Size n)  = showParen (p > 0) $
+        showString "Size " . showsPrec 1 n
+    instance Show Index where 
+      showsPrec p (Index n) = showParen (p > 0) $
+        showString "Index " . showsPrec 1 n
+
+## Type Families: Array: Properties
+{: .spec }
+    prop_L1 :: (ArrayElem a, Eq a) => [a] -> Property
+    prop_L1 xs = not (null xs) ==>
+      forAll (choose (0, length xs - 1)) $ \i ->
+        fromList xs ! (Index i)  ==  xs !! i
+    testL1Int  = quickCheck (prop_L1 :: [Int]       -> Property)
+    testL1Pair = quickCheck (prop_L1 :: [(Int,Int)] -> Property)
+    testL1Nest = quickCheck (prop_L1 :: [Array Int] -> Property)
+    prop_L2 :: (ArrayElem a, Eq a) => [a] -> Bool
+    prop_L2 xs = toList (fromList xs) == xs
+    testL2Int  = quickCheck (prop_L2 :: [Int] -> Bool)
+    testL2Pair = quickCheck (prop_L2 :: [(Int,Int)] -> Bool)
+    testL2Nest = quickCheck (prop_L2 :: [Array Int] -> Bool)
+    sliceModel :: [a] -> (Index, Size) -> [a]
+    sliceModel xs (Index i, Size n) = take n (drop i xs)
+    toModel :: ArrayElem a => Array a -> [a]
+    toModel = toList
+    (~=) :: (ArrayElem a, Eq a) => [a] -> Array a -> Bool
+    model ~= impl  =  model == toModel impl
+    prop_L3 :: (ArrayElem a, Eq a) => [a] -> (Index, Size) -> Bool
+    prop_L3 xs p = sliceModel xs p ~= slice (fromList xs) p
+    q :: (Testable prop) => prop -> IO ()
+    q = quickCheck
+    testL3Int  = q (prop_L3 :: [Int]       -> (Index, Size) -> Bool)
+    testL3Pair = q (prop_L3 :: [(Int,Int)] -> (Index, Size) -> Bool)
+    testL3Nest = q (prop_L3 :: [Array Int] -> (Index, Size) -> Bool)
+    instance (Arbitrary a, ArrayElem a) => Arbitrary (Array a) where
+      arbitrary = liftM fromList arbitrary
+    instance Arbitrary Index where -- no negative indices
+      arbitrary = liftM Index $ sized (\n-> choose (0,n)) 
+    instance Arbitrary Size where -- no negative sizes
+      arbitrary = liftM Size $ sized (\n-> choose (0,n)) 
+    main = sequence_ [ testL1Int, testL1Pair, testL1Nest
+                     , testL2Int, testL2Pair, testL2Nest
+                     , testL3Int, testL3Pair, testL3Nest ]
+    {- An earlier version had
+    *Array.Properties> testL3Nest
+    *** Failed! Falsifiable (after 4 tests):                  
+    [ArrInt [2],ArrInt [-1,-2,-1]] (Index 1,Size 1)
+    The problem was that slice for nested arrays did not preserve the
+    invariant that the ins :: Array (Index, Size) should satisfy.
+    In fact, it would be more convenient if the full sum (the element
+    dropped by init) was also stored.  -}
+    test1l :: [Array Int]
+    test1l = [ArrInt [-2,0] ,ArrInt [],ArrInt [0]]
+    test1a :: Array (Array Int)
+    test1a = fromList test1l
+    -- Untested code - partial solution to the exercise.
+    prop_invariant :: (Eq b, Num b) => [(b, b)] -> Bool
+    prop_invariant iss = is == init is'
+      where (is, ns) = unzip iss
+            is' = scanl (+) 0 ns
+
+## Typed Array: Show/Eq
+    {-# LANGUAGE StandaloneDeriving, FlexibleInstances, FlexibleContexts #-}
+    instance Show (Array Int) where
+      showsPrec p (ArrInt a) = showParen (p > 0) $ 
+        showString "ArrInt " . showsPrec 1 a
+    instance Show (Array Size) where
+      showsPrec p (ArrSize a) = showParen (p > 0) $ 
+        showString "ArrSize " . showsPrec 1 a
+    instance Show (Array Index) where
+      showsPrec p (ArrIndex a) = showParen (p > 0) $
+        showString "ArrIndex " . showsPrec 1 a
+    instance (Show (Array a), Show (Array b)) => Show (Array (a, b)) where
+      showsPrec p (ArrPair (as, bs)) = showParen (p > 0) $
+        showString "ArrPair " . showsPrec 1 (as, bs)
+    instance Show (Array a) => Show (Array (Array a)) where
+      showsPrec p (ArrNested as segs) = showParen (p > 0) $
+        showString "ArrNested " . showsPrec 1 as . showString " " 
+                                . showsPrec 1 segs
+    deriving instance Eq (Array Index)
+    deriving instance (Eq (Array a), Eq (Array b)) => Eq (Array (a,b))
+    deriving instance Eq (Array a) => Eq (Array (Array a))

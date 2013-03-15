@@ -9,19 +9,20 @@
 @media screen {
   /* string content */
   .str {
-    color: #dd1144;
+    /*color: #dd1144;*/
+    color: #333;
   }
 
   /* a keyword */
   .kwd {
-    /*color: #333333;*/
+    color: #333333;
     /*color: #445588;*/
-    color: teal;
+    /*color: teal;*/
   }
 
   /* a comment */
   .com {
-    color: #999988;
+    color: #555;
   }
 
   /* a type name */
@@ -36,8 +37,8 @@
 
   /* punctuation */
   .pun {
-    color: #445588;
-    /*color: #333333;*/
+    /*color: #445588;*/
+    color: #333333;
     /*color: teal;*/
     /*color: #990000;*/
     /*color: navy;*/
