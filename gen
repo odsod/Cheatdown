@@ -1,0 +1,3 @@
+./run sheet1.md sheet1.pdf
+./run sheet2.md sheet2.pdf
+pdftk sheet1.pdf sheet2.pdf cat output out.pdf

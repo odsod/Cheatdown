@@ -102,19 +102,22 @@ pre {
 /* line 31, ../sass/styles.sass */
 .edsl {
   background: #bbbbbb;
-  color: black;
+  color: #333333;
+  font-weight: bold;
 }
 
-/* line 35, ../sass/styles.sass */
+/* line 36, ../sass/styles.sass */
 .spec {
-  background: black;
+  background: #333333;
   color: white;
+  font-weight: bold;
 }
 
-/* line 39, ../sass/styles.sass */
+/* line 41, ../sass/styles.sass */
 .types {
+  font-weight: bold;
   padding-left: 0;
   background: white;
-  color: black;
-  border: 2px solid black;
+  color: #333333;
+  border: 2px solid #333333;
 }
