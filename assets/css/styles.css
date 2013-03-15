@@ -87,6 +87,11 @@ h2 {
 }
 
 /* line 22, ../sass/styles.sass */
+pre {
+  white-space: pre-wrap;
+}
+
+/* line 25, ../sass/styles.sass */
 .item {
   margin: 0;
   padding: 0;
@@ -94,17 +99,22 @@ h2 {
   background: #eeeeee;
 }
 
-/* line 28, ../sass/styles.sass */
-.edsl {
-  background: #777777;
-}
-
 /* line 31, ../sass/styles.sass */
-.spec {
-  background: #aaaaaa;
+.edsl {
+  background: #bbbbbb;
+  color: black;
 }
 
 /* line 35, ../sass/styles.sass */
+.spec {
+  background: black;
+  color: white;
+}
+
+/* line 39, ../sass/styles.sass */
 .types {
-  background: #dddddd;
+  padding-left: 0;
+  background: white;
+  color: black;
+  border: 2px solid black;
 }
