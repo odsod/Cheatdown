@@ -1,5 +1,6 @@
 ## Signal: Examples
 {: .edsl }
+
     -- | sinusoidal of given frequency
     sinS :: Double -> Signal Double
     sinS freq = mapT (freq*) $ mapS sin timeS
@@ -38,6 +39,7 @@
 
 ## Matrix
 {: .edsl }
+
     type Angle  = Double
     data Vec    = V { vecX, vecY :: Double }
     type Point  = Vec
@@ -62,6 +64,7 @@
 
 ## Signal: Shallow
 {: .edsl }
+
     type Time = Double
     newtype Signal a = Sig {unSig :: Time -> a}
     constS :: a -> Signal a
@@ -83,6 +86,7 @@
 
 ## Signal: Deep
 {: .edsl }
+
     type Time = Double
     data Signal a where
       ConstS :: a -> Signal a
@@ -96,6 +100,7 @@
 
 ## Shape: Derived
 {: .edsl }
+
     -- | Derived combinators
     scale :: Vec -> Shape -> Shape
     scale v = transform (matrix  (vecX v)  0 
@@ -110,6 +115,7 @@
 
 ## Shape: Shallow
 {: .edsl }
+
     newtype Shape = Shape (Point -> Bool)
     empty :: Shape
     empty = Shape $ \_ -> False
@@ -136,6 +142,7 @@
 
 ## Shape: Deep
 {: .edsl }
+
     data Shape where
       Empty   :: Shape
       Disc    :: Shape
@@ -165,6 +172,7 @@
 
 ## Shape: Render
 {: .edsl }
+
     -- | A window specifies what part of the world to render and at which
     --   resolution.
     data Window = Window
@@ -192,6 +200,7 @@
 
 ## Shape: Animate
 {: .edsl }
+
     -- | Combining 'Signal' and 'Shape' to obtain moving objects.
     fps = 10   -- we generate 10 fps
     -- | Animate a shape valued signal.
@@ -206,6 +215,7 @@
 
 ## Shape: Animation Examples
 {: .edsl }
+
     -- | A rotating square
     rotatingSquare :: Signal Shape
     rotatingSquare = constS rotate $$ timeS $$ constS square
@@ -236,6 +246,7 @@
 
 ## Program: Shallow
 {: .edsl }
+
     {-| A simple embedded language for input/output. Shallow embedding. -}
     type Input  = String
     type Output = String
@@ -262,6 +273,7 @@
 
 ## Program: Deep 1
 {: .edsl }
+
     type Input   =  String
     type Output  =  String
     data Program a where
@@ -282,6 +294,7 @@
 
 ## Program: Deep 2
 {: .edsl }
+
     import Control.Monad((>=>))
     -- > (>=>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
     -- > f >=> g   =   \c ->  f c >>= g
@@ -324,6 +337,7 @@
 
 ## Program: Example
 {: .edsl }
+
     putS :: String -> Program ()
     putS = mapM_ putC
     putSLn :: String -> Program ()
@@ -363,6 +377,7 @@
 
 ## WhileM
 {: .types }
+
     whileM :: Monad m => m Bool -> m a -> m [a]
     whileM cond body = do
       ok <- cond
@@ -375,6 +390,7 @@
 
 ## Program: Game engine
 {: .edsl }
+
     -- | A game with state s is a program which given a game state computes the
     --   next state, doing some input/output in the process.
     -- 'Nothing' represents the end of the game.
@@ -401,6 +417,7 @@
 
 ## Program: Coord
 {: .edsl }
+
     type Coord = (Int, Int)
     data Dir = North | East | South | West
       deriving (Eq, Show, Enum)
@@ -415,6 +432,7 @@
 
 ## Program: Snake
 {: .edsl }
+
     -- | A snake is a list of body coord.s and a dir. of travel.
     data Snake = Snake { pos :: [Coord] , dir :: Dir }
     -- | The starting position of the snake.
@@ -463,6 +481,7 @@
 
 ## Parser: Utils
 {: .edsl }
+
     -- | Parse a symbol satisfying a given predicate.
     sat :: (s -> Bool) -> P s s
     sat p = symbol >>= \x if p x then return x else pfail
@@ -486,6 +505,7 @@
 
 ## Parsers: Naive Deep
 {: .edsl }
+
     data Parser1 s a where
       Symbol  ::  Parser1 s s
       Fail    ::  Parser1 s a
@@ -504,6 +524,7 @@
 
 ## Parser: Semantics
 {: .spec }
+
     {- Starting point:
     symbolS :: [s] -> [(s, [s])] -- Semantics s s
     symbolS []      = []        -- no parse
@@ -548,6 +569,7 @@
 
 ## Parser: Optimization argument
 {: .spec }
+
     {- Using this reference semantics we can prove (exercise) a number
     of useful laws about parsers. We will use these laws later to
     derive an efficient implementation of the library.
@@ -588,6 +610,7 @@
 
 ## Parser: Problems
 {: .spec }
+
     {- The reference semantics is useful for reasoning, but
        inefficient.  There are three sources of inefficiency that we
        can identify:
@@ -605,6 +628,7 @@
 
 ## Parser: SymbolBind
 {: .spec }
+
     -- Can we linearize sequencing (>>=)? (Would help with 1.)
     data Parser2 s a where
         SymbolBind2  ::  (s -> Parser2 s a) -> Parser2 s a
@@ -658,6 +682,7 @@
 
 ## Parser: ReturnChoice
 {: .spec }
+
     -- Can we linearize choice as well (+++)?
     data Parser3 s a where
         SymbolBind3    ::  (s -> Parser3 s a) -> Parser3 s a
@@ -697,6 +722,7 @@
 
 ## Parser: Tests
 {: .spec }
+
     data Expr = Lit Int | Plus Expr Expr
     -- | A parser for expressions.
     exprP :: P Char Expr
@@ -749,6 +775,7 @@
 
 ## Interpreter: Types
 {: .edsl }
+
     data Expr = Lit Integer | Expr :+ Expr | Var Name
               | Let Name Expr Expr | NewRef Expr
               | Deref Expr | Expr := Expr | Catch Expr Expr
@@ -772,6 +799,7 @@
 
 ## Interpreter: Monad stacking order
 {: .edsl }
+
     {-| We add an error monad to our evaluation monad. It matters whether
         we stick the error monad on the outside or the inside of the state
         monad. In this case we stick it on the inside.
@@ -792,6 +820,7 @@
 
 ## Interpreter: Transformer stacks
 {: .edsl }
+
     newtype Eval1 a = Eval1{ unEval1:: CMS.StateT Store
       (CMR.ReaderT Env (CME.ErrorT Err CMI.Identity)) a }
       deriving (Monad, CMS.MonadState  Store, CMR.MonadReader Env,
@@ -818,6 +847,7 @@
 
 ## Interpreter: Environment
 {: .edsl }
+
     -- | Here we just remove the type annotation
     -- lookupVar :: Name -> Eval Value
     lookupVar x = do
@@ -849,6 +879,7 @@
 
 ## Interperter: Eval
 {: .edsl }
+
     -- | The case for 'Catch' simply uses the 'catchError' function from
     --   the error monad.
     -- eval :: Expr -> Eval Value
@@ -868,6 +899,7 @@
 
 ## Interpreter: Examples
 {: .edsl }
+
     testExpr1 = parse "!p+1738"
     testExpr2 = parse "(try !p catch 0)+1738"
     test1 = runEval1 $ eval testExpr1
@@ -894,6 +926,7 @@
 
 ## Interpreter: Parser
 {: .edsl }
+
     data Language e =
       Lang { lLit :: Integer -> e , lPlus :: e -> e -> e
            , lLet :: String -> e -> e -> e, lVar :: String -> e
@@ -939,6 +972,7 @@
 
 ## Testing: Insertion sort
 {: .spec }
+
     q :: Q.Testable prop => prop -> IO ()
     q = Q.quickCheck
     -- The familiar insert sort function
@@ -995,6 +1029,7 @@
 
 ## GADTs: Expressions
 {: .types }
+
     -- | A simple expression language with integers and booleans.
     -- Contains both well- and ill-typed expressions.
     data Expr where
@@ -1066,6 +1101,7 @@
 
 ## GADTs: Type checking
 {: .types }
+
     {-# LANGUAGE GADTs, ExistentialQuantification #-}
     infixl 6 :+; infix  4 :==; infix  0 :::
     -- | The type of well-typed expressions. There is no way to
@@ -1170,6 +1206,7 @@
 
 ## GADTs: Parser
 {: .types }
+
     type ParseResult s a = [(a, [s])]
     data P s a where
       Fail   :: P s a
@@ -1222,6 +1259,7 @@
 
 ## Type Families: Add
 {: .types }
+
     {-# LANGUAGE MultiParamTypeClasses #-}
     {-# LANGUAGE TypeFamilies #-}
     {-# LANGUAGE FlexibleInstances#-}
@@ -1266,6 +1304,7 @@
 
 ## Type Families: Array
 {: .types }
+
     {-# LANGUAGE TypeFamilies, GeneralizedNewtypeDeriving #-}
     -- Some preliminaries (for stronger type checking)
     newtype Index = Index {unIndex :: Int} 
@@ -1420,6 +1459,7 @@
 
 ## Type Families: Array: Properties
 {: .spec }
+
     prop_L1 :: (ArrayElem a, Eq a) => [a] -> Property
     prop_L1 xs = not (null xs) ==>
       forAll (choose (0, length xs - 1)) $ \i ->
@@ -1473,6 +1513,8 @@
             is' = scanl (+) 0 ns
 
 ## Typed Array: Show/Eq
+{: .types}
+
     {-# LANGUAGE StandaloneDeriving, FlexibleInstances, FlexibleContexts #-}
     instance Show (Array Int) where
       showsPrec p (ArrInt a) = showParen (p > 0) $ 
@@ -1496,6 +1538,7 @@
 
 ## Parser library: Tests
 {: .spec }
+
     -- We import the first naive implementation as the specification.
     import qualified Parser1 as Spec (P, symbol, (+++), pfail, parse)
     -- | We want to generate and show arbitrary parsers. To do this
@@ -1630,6 +1673,7 @@
 
 ## RWMonad
 {: .types }
+
     {-# LANGUAGE GeneralizedNewtypeDeriving #-}
     {-# LANGUAGE FlexibleInstances #-}
     module RWMonad where
@@ -1662,6 +1706,7 @@
 
 ## Monad laws: Proving
 {: .spec }
+
     -- State and prove the three Monad laws
     lawReturnBind :: (Eq (m b), Monad m) => a -> (a -> m b) -> Bool
     lawReturnBind x f  =  (return x >>= f)  ==  f x
